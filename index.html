@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MedicaInfo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #7c5cfc;
+    --success: #2dd4a0;
+    --danger: #f76c6c;
+    --text: #e8eaf0;
+    --text2: #8b91b0;
+    --text3: #555d80;
+    --pill-bg: #1e2235;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 90px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #0f1117 100%);
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .app-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .count-badge {
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+  }
+  .sync-indicator {
+    font-size: 11px;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sync-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .sync-dot.offline { background: var(--danger); animation: none; }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 12px;
+  }
+  .tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--accent); color: white; }
+
+  /* SEARCH */
+  .search-block { display: flex; flex-direction: column; gap: 8px; }
+  .search-row {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .search-row:focus-within { border-color: var(--accent); }
+  .search-icon { color: var(--text3); font-size: 15px; flex-shrink: 0; }
+  .search-label { font-size: 11px; color: var(--text3); white-space: nowrap; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    padding: 11px 0;
+  }
+  .search-input::placeholder { color: var(--text3); }
+  .clear-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 2px; display: none; }
+  .search-input:not(:placeholder-shown) ~ .clear-btn { display: block; }
+
+  /* CONTENT */
+  .content { padding: 16px 16px 0; }
+
+  /* LOADING */
+  .loading-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* STATS */
+  .stats-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+  .stat-item {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--accent); line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* MED CARD */
+  .med-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .med-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .med-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--text); line-height: 1.2; }
+  .med-dosage { font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 2px; }
+  .card-actions { display: flex; gap: 6px; }
+  .btn-icon {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+    color: var(--text2);
+  }
+  .btn-icon:active { transform: scale(0.9); }
+
+  .med-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .pill {
+    background: var(--pill-bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .pill.ordonnance { border-color: #3a4a6a; color: #7a9cf7; }
+  .pill.sans-ordonnance { border-color: #3a4a3a; color: #5abf8a; }
+
+  .med-field { margin-bottom: 8px; }
+  .med-field:last-child { margin-bottom: 0; }
+  .field-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 2px; }
+  .field-value { font-size: 13px; color: var(--text2); line-height: 1.4; }
+  .field-value.highlight { color: var(--success); }
+
+  .med-symptomes { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; }
+  .sym-tag { background: #1a2535; border: 1px solid #2a3f5f; color: #6aacf7; border-radius: 6px; padding: 2px 8px; font-size: 11px; }
+  .sym-tag.match { background: #1f3520; border-color: #3a6040; color: var(--success); }
+
+  /* FORM */
+  .form-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+  .form-title { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+  .form-input, .form-textarea, .form-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 11px 13px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+  .form-textarea { resize: none; height: 72px; line-height: 1.5; }
+  .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238b91b0' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; }
+  .form-select option { background: var(--surface); }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+
+  .tags-input-wrap {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 9px;
+    padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; min-height: 46px;
+    transition: border-color 0.2s;
+  }
+  .tags-input-wrap:focus-within { border-color: var(--accent); }
+  .tag-item { background: #1a2535; border: 1px solid #2a3f5f; color: #6aacf7; border-radius: 6px; padding: 3px 8px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .tag-remove { background: none; border: none; color: #6aacf7; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; opacity: 0.6; }
+  .tags-input { flex: 1; min-width: 100px; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 3px 4px; }
+  .tags-hint { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+  .form-btns { display: flex; gap: 10px; margin-top: 6px; }
+  .btn-primary {
+    flex: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px; padding: 13px;
+    color: white; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 18px; color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; cursor: pointer;
+  }
+
+  /* EMPTY */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--text3); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-text { font-size: 15px; line-height: 1.5; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 50%; transform: translateX(50%);
+    max-width: calc(480px - 32px);
+    width: calc(100% - 32px);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 14px; padding: 15px;
+    color: white; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(79,142,247,0.35);
+    transition: all 0.2s; z-index: 200;
+  }
+  .fab:active { transform: translateX(50%) scale(0.97); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    padding: 20px 16px 36px; width: 100%; max-width: 480px;
+    max-height: 92vh; overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+
+  /* HIGHLIGHT */
+  mark { background: rgba(79,142,247,0.3); color: var(--accent); border-radius: 3px; padding: 0 2px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; top: 16px; left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--success); color: #0a1a0f;
+    padding: 10px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; z-index: 999;
+    transition: transform 0.3s ease; white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); color: white; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">💊 MedicaInfo</div>
+    <div class="header-right">
+      <div class="sync-indicator">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncLabel">sync</span>
+      </div>
+      <div class="count-badge" id="countBadge">0</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('liste')">📋 Ma liste</button>
+    <button class="tab" onclick="switchTab('recherche')">🔍 Recherche</button>
+  </div>
+  <div id="searchBlock" class="search-block" style="display:none">
+    <div class="search-row">
+      <span class="search-icon">💊</span>
+      <span class="search-label">Nom</span>
+      <input class="search-input" id="searchNom" type="text" placeholder="ex: Ibuprofène…" oninput="renderListe()" />
+      <button class="clear-btn" onclick="clearSearch('searchNom')">✕</button>
+    </div>
+    <div class="search-row">
+      <span class="search-icon">🩺</span>
+      <span class="search-label">Symptôme</span>
+      <input class="search-input" id="searchSym" type="text" placeholder="ex: fièvre, douleur…" oninput="renderListe()" />
+      <button class="clear-btn" onclick="clearSearch('searchSym')">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <div>Connexion à MedicaInfo…</div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" onclick="openModal()">
+  <span>＋</span> Ajouter un médicament
+</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="form-title" id="formTitle">Nouveau médicament</div>
+    <input type="hidden" id="editId" value="" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nom *</label>
+        <input class="form-input" id="fNom" type="text" placeholder="ex: Amoxicilline" />
+      </div>
+      <div class="form-group" style="max-width:110px">
+        <label class="form-label">Dosage</label>
+        <input class="form-input" id="fDosage" type="text" placeholder="500mg" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select class="form-select" id="fType">
+        <option value="ordonnance">🔵 Sur ordonnance</option>
+        <option value="sans">🟢 Sans ordonnance</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Indication / Raison de prescription</label>
+      <textarea class="form-textarea" id="fIndication" placeholder="ex: Infection bactérienne ORL, angine…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Symptômes ciblés</label>
+      <div class="tags-input-wrap" onclick="focusSym()">
+        <div id="symTags"></div>
+        <input class="tags-input" id="symInput" type="text" placeholder="Ajouter…" onkeydown="handleSymKey(event)" />
+      </div>
+      <div class="tags-hint">Appuie sur Entrée ou virgule pour ajouter un symptôme</div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Prescripteur</label>
+        <input class="form-input" id="fMedecin" type="text" placeholder="Dr Dupont" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="fDate" type="date" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Notes libres</label>
+      <textarea class="form-textarea" id="fNotes" placeholder="Posologie, effets, remarques…"></textarea>
+    </div>
+
+    <div class="form-btns">
+      <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn-primary" id="saveBtn" onclick="saveMed()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIb2cKkcmMuCWrWIwr5cQurlYaG5o10-I",
+    authDomain: "medicainfo-62a8a.firebaseapp.com",
+    projectId: "medicainfo-62a8a",
+    storageBucket: "medicainfo-62a8a.firebasestorage.app",
+    messagingSenderId: "989441811213",
+    appId: "1:989441811213:web:d017347961a323c945c644"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const medsCol = collection(db, "medicaments");
+
+  // Données en mémoire
+  let meds = [];
+
+  // Écoute temps réel — se met à jour automatiquement
+  const q = query(medsCol, orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    meds = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    setSynced(true);
+    renderListe();
+  }, (err) => {
+    setSynced(false);
+    console.error(err);
+  });
+
+  function setSynced(ok) {
+    document.getElementById('syncDot').className = 'sync-dot' + (ok ? '' : ' offline');
+    document.getElementById('syncLabel').textContent = ok ? 'sync' : 'hors ligne';
+  }
+
+  // Expose les fonctions au scope global
+  window._db = db;
+  window._medsCol = medsCol;
+  window._getMeds = () => meds;
+  window._addMed = (data) => addDoc(medsCol, { ...data, createdAt: Date.now() });
+  window._updateMed = (id, data) => updateDoc(doc(db, "medicaments", id), data);
+  window._deleteMed = (id) => deleteDoc(doc(db, "medicaments", id));
+</script>
+
+<script>
+  let symTagsList = [];
+  let currentTab = 'liste';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='liste')||(i===1&&tab==='recherche')));
+    document.getElementById('searchBlock').style.display = tab === 'recherche' ? 'flex' : 'none';
+    document.getElementById('searchNom').value = '';
+    document.getElementById('searchSym').value = '';
+    renderListe();
+  }
+
+  function clearSearch(id) {
+    document.getElementById(id).value = '';
+    renderListe();
+  }
+
+  function highlight(text, query) {
+    if (!query || !text) return text || '';
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  window.renderListe = function() {
+    const meds = window._getMeds ? window._getMeds() : [];
+    const container = document.getElementById('mainContent');
+    const searchNom = (document.getElementById('searchNom').value || '').trim().toLowerCase();
+    const searchSym = (document.getElementById('searchSym').value || '').trim().toLowerCase();
+
+    window.updateBadge(meds.length);
+
+    let filtered = meds.filter(m => {
+      const nomMatch = !searchNom || (m.nom||'').toLowerCase().includes(searchNom) || (m.dosage||'').toLowerCase().includes(searchNom);
+      const symMatch = !searchSym || (m.indication||'').toLowerCase().includes(searchSym) ||
+        (m.symptomes||[]).some(s => s.toLowerCase().includes(searchSym));
+      return nomMatch && symMatch;
+    });
+
+    if (meds.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">💊</div><div class="empty-text">Ton carnet est vide.<br>Ajoute ton premier médicament !</div></div>`;
+      return;
+    }
+    if (filtered.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Aucun résultat pour cette recherche.</div></div>`;
+      return;
+    }
+
+    let statsHtml = '';
+    if (currentTab === 'liste') {
+      const ordo = meds.filter(m => m.type === 'ordonnance').length;
+      const sans = meds.filter(m => m.type === 'sans').length;
+      statsHtml = `<div class="stats-bar">
+        <div class="stat-item"><div class="stat-num">${meds.length}</div><div class="stat-label">Total</div></div>
+        <div class="stat-item"><div class="stat-num" style="color:#7a9cf7">${ordo}</div><div class="stat-label">Ordonnance</div></div>
+        <div class="stat-item"><div class="stat-num" style="color:var(--success)">${sans}</div><div class="stat-label">Sans ordo</div></div>
+      </div>`;
+    }
+
+    const cards = filtered.map(m => {
+      const nomHl = highlight(m.nom, searchNom);
+      const dosageHl = m.dosage ? highlight(m.dosage, searchNom) : '';
+      const indicHl = m.indication ? highlight(m.indication, searchSym) : '';
+      const symTagsHtml = (m.symptomes||[]).map(s => {
+        const match = searchSym && s.toLowerCase().includes(searchSym);
+        return `<span class="sym-tag${match?' match':''}">${highlight(s, searchSym)}</span>`;
+      }).join('');
+      const typeLabel = m.type === 'ordonnance'
+        ? '<span class="pill ordonnance">🔵 Ordonnance</span>'
+        : '<span class="pill sans-ordonnance">🟢 Sans ordo</span>';
+      const dateStr = m.date ? new Date(m.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+
+      return `<div class="med-card">
+        <div class="med-header">
+          <div>
+            <div class="med-name">${nomHl}</div>
+            ${dosageHl ? `<div class="med-dosage">${dosageHl}</div>` : ''}
+          </div>
+          <div class="card-actions">
+            <button class="btn-icon" onclick="editMed('${m.id}')" title="Modifier">✏️</button>
+            <button class="btn-icon" onclick="deleteMed('${m.id}', '${(m.nom||'').replace(/'/g,"\\'")}')">🗑️</button>
+          </div>
+        </div>
+        <div class="med-pills">
+          ${typeLabel}
+          ${dateStr ? `<span class="pill">📅 ${dateStr}</span>` : ''}
+          ${m.medecin ? `<span class="pill">👨‍⚕️ ${m.medecin}</span>` : ''}
+        </div>
+        ${m.indication ? `<div class="med-field"><div class="field-label">Indication</div><div class="field-value highlight">${indicHl}</div></div>` : ''}
+        ${(m.symptomes||[]).length > 0 ? `<div class="med-field"><div class="field-label">Symptômes ciblés</div><div class="med-symptomes">${symTagsHtml}</div></div>` : ''}
+        ${m.notes ? `<div class="med-field"><div class="field-label">Notes</div><div class="field-value">${highlight(m.notes,'')}</div></div>` : ''}
+      </div>`;
+    }).join('');
+
+    container.innerHTML = statsHtml + cards;
+  }
+
+  window.updateBadge = function(n) {
+    document.getElementById('countBadge').textContent = n + ' médicament' + (n > 1 ? 's' : '');
+  }
+
+  function openModal(id = '') {
+    document.getElementById('editId').value = id;
+    symTagsList = [];
+
+    if (id) {
+      const m = window._getMeds().find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('formTitle').textContent = '✏️ Modifier';
+      document.getElementById('fNom').value = m.nom || '';
+      document.getElementById('fDosage').value = m.dosage || '';
+      document.getElementById('fType').value = m.type || 'ordonnance';
+      document.getElementById('fIndication').value = m.indication || '';
+      document.getElementById('fMedecin').value = m.medecin || '';
+      document.getElementById('fDate').value = m.date || '';
+      document.getElementById('fNotes').value = m.notes || '';
+      symTagsList = [...(m.symptomes || [])];
+    } else {
+      document.getElementById('formTitle').textContent = '＋ Nouveau médicament';
+      document.getElementById('fNom').value = '';
+      document.getElementById('fDosage').value = '';
+      document.getElementById('fType').value = 'ordonnance';
+      document.getElementById('fIndication').value = '';
+      document.getElementById('fMedecin').value = '';
+      document.getElementById('fDate').value = '';
+      document.getElementById('fNotes').value = '';
+    }
+    renderSymTags();
+    document.getElementById('modalOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('fNom').focus(), 350);
+  }
+
+  window.openModal = openModal;
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  window.closeModal = closeModal;
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+  window.closeModalOutside = closeModalOutside;
+
+  async function saveMed() {
+    const nom = document.getElementById('fNom').value.trim();
+    if (!nom) {
+      document.getElementById('fNom').style.borderColor = 'var(--danger)';
+      document.getElementById('fNom').focus();
+      setTimeout(() => document.getElementById('fNom').style.borderColor = '', 1500);
+      return;
+    }
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    const data = {
+      nom,
+      dosage: document.getElementById('fDosage').value.trim(),
+      type: document.getElementById('fType').value,
+      indication: document.getElementById('fIndication').value.trim(),
+      symptomes: [...symTagsList],
+      medecin: document.getElementById('fMedecin').value.trim(),
+      date: document.getElementById('fDate').value,
+      notes: document.getElementById('fNotes').value.trim(),
+    };
+
+    try {
+      const id = document.getElementById('editId').value;
+      if (id) {
+        await window._updateMed(id, data);
+        showToast('✅ Médicament modifié');
+      } else {
+        await window._addMed(data);
+        showToast('✅ Médicament ajouté');
+      }
+      closeModal();
+    } catch(e) {
+      showToast('❌ Erreur : ' + e.message, true);
+    }
+    btn.disabled = false;
+    btn.textContent = 'Enregistrer';
+  }
+  window.saveMed = saveMed;
+
+  window.editMed = function(id) { openModal(id); }
+
+  window.deleteMed = async function(id, nom) {
+    if (confirm(`Supprimer "${nom}" ?`)) {
+      try {
+        await window._deleteMed(id);
+        showToast('🗑️ Médicament supprimé');
+      } catch(e) {
+        showToast('❌ Erreur', true);
+      }
+    }
+  }
+
+  // Tags symptômes
+  window.focusSym = () => document.getElementById('symInput').focus();
+  window.handleSymKey = function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSymTag(document.getElementById('symInput').value);
+    } else if (e.key === 'Backspace' && !document.getElementById('symInput').value && symTagsList.length > 0) {
+      symTagsList.pop();
+      renderSymTags();
+    }
+  }
+  function addSymTag(val) {
+    const v = val.replace(',','').trim();
+    if (v && !symTagsList.includes(v)) { symTagsList.push(v); renderSymTags(); }
+    document.getElementById('symInput').value = '';
+  }
+  window.removeSymTag = function(i) { symTagsList.splice(i,1); renderSymTags(); }
+  function renderSymTags() {
+    document.getElementById('symTags').innerHTML = symTagsList.map((s,i) =>
+      `<span class="tag-item">${s}<button class="tag-remove" onclick="removeSymTag(${i})">×</button></span>`
+    ).join('');
+  }
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (isError ? ' error' : '');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
