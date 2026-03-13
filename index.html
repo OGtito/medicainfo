@@ -249,8 +249,17 @@
   .tags-input-wrap:focus-within { border-color: var(--accent); }
   .tag-item { background: #1a2535; border: 1px solid #2a3f5f; color: #6aacf7; border-radius: 6px; padding: 3px 8px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
   .tag-remove { background: none; border: none; color: #6aacf7; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; opacity: 0.6; }
-  .tags-input { flex: 1; min-width: 100px; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 3px 4px; }
+  .tags-input { flex: 1; min-width: 80px; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 3px 4px; }
   .tags-hint { font-size: 10px; color: var(--text3); margin-top: 4px; }
+  .tags-row { display: flex; gap: 6px; align-items: flex-start; }
+  .tags-row .tags-input-wrap { flex: 1; }
+  .btn-add-tag {
+    background: var(--accent); border: none; border-radius: 9px;
+    width: 44px; height: 44px; color: white; font-size: 22px;
+    cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.2s;
+  }
+  .btn-add-tag:active { opacity: 0.7; }
 
   .form-btns { display: flex; gap: 10px; margin-top: 6px; }
   .btn-primary {
@@ -394,11 +403,14 @@
 
     <div class="form-group">
       <label class="form-label">Symptômes ciblés</label>
-      <div class="tags-input-wrap" onclick="focusSym()">
-        <div id="symTags"></div>
-        <input class="tags-input" id="symInput" type="text" placeholder="Ajouter…" onkeydown="handleSymKey(event)" />
+      <div class="tags-row">
+        <div class="tags-input-wrap" onclick="focusSym()">
+          <div id="symTags"></div>
+          <input class="tags-input" id="symInput" type="text" placeholder="Ajouter un symptôme…" onkeydown="handleSymKey(event)" />
+        </div>
+        <button type="button" class="btn-add-tag" onclick="addSymTagFromBtn()" title="Ajouter">+</button>
       </div>
-      <div class="tags-hint">Appuie sur Entrée ou virgule pour ajouter un symptôme</div>
+      <div class="tags-hint">Tape un symptôme puis appuie sur + (ou Entrée sur PC)</div>
     </div>
 
     <div class="form-row">
@@ -680,6 +692,10 @@
       symTagsList.pop();
       renderSymTags();
     }
+  }
+  window.addSymTagFromBtn = function() {
+    addSymTag(document.getElementById('symInput').value);
+    document.getElementById('symInput').focus();
   }
   function addSymTag(val) {
     const v = val.replace(',','').trim();
