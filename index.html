@@ -638,11 +638,7 @@
         joursEcoules+=duree;
       }
       const dateLabel=d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-      if(isFuture){
-        const momHtml=momentsJour.map(mid=>{const m=MOMENTS.find(x=>x.id===mid);return m?`<span class="histo-moment">${m.icon}</span>`:''}).join('');
-        joursHtml+=`<div class="histo-day"><span class="histo-date">${dateLabel}</span><div class="histo-moments">${momHtml}</div><span class="histo-status" style="color:var(--text3)">À venir</span></div>`;
-        continue;
-      }
+      if(isFuture) continue;
       const prisesJour=prises[dStr]||{};
       let attendu=momentsJour.length,fait=0;
       const momHtml=momentsJour.map(mid=>{
