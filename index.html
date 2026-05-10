@@ -591,6 +591,19 @@
     catch(e){showToast('❌ Erreur',true);}
   }
 
+  window.togglePriseHisto=async function(suiviId,date,moment){
+    const s=window._getSuivis().find(x=>x.id===suiviId); if(!s) return;
+    const prises=JSON.parse(JSON.stringify(s.prises||{}));
+    if(!prises[date]) prises[date]={};
+    prises[date][moment]=!prises[date][moment];
+    try{
+      await window._updateSuivi(suiviId,{prises});
+      showToast(prises[date][moment]?'✅ Prise ajoutée':'↩️ Prise retirée');
+      // Rafraîchir l'historique ouvert
+      openHisto(suiviId);
+    } catch(e){showToast('❌ Erreur',true);}
+  }
+
   window.deleteSuivi=async(id,nom)=>{
     if(confirm(`Supprimer le suivi "${nom}" ?`)){try{await window._deleteSuivi(id);showToast('🗑️ Suivi supprimé');}catch(e){showToast('❌ Erreur',true);}}
   }
@@ -698,7 +711,7 @@
       const momHtml=momentsJour.map(mid=>{
         const m=MOMENTS.find(x=>x.id===mid); if(!m) return '';
         const done=!!prisesJour[mid]; if(done) fait++;
-        return `<span class="histo-moment" title="${m.label}">${done?'✅':'❌'}</span>`;
+        return `<button onclick="togglePriseHisto('${id}','${dStr}','${mid}')" style="background:none;border:none;cursor:pointer;font-size:22px;padding:2px;border-radius:6px;" title="Tap pour modifier">${done?'✅':'❌'}</button>`;
       }).join('');
       prisesAttendues+=attendu; prisesEffectuees+=fait;
       let statusCls='',statusTxt='';
